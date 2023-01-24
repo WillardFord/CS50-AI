@@ -93,34 +93,38 @@ def iterate_pagerank(corpus, damping_factor):
     inputs_dictionary = find_inputs(corpus)
     change = 1
     default_value = (1-damping_factor)/len(corpus)
+    counter = 1
     while np.abs(change) > .001:
         for page in PageRanks.keys():
             weighted_value = calculate_weighted(inputs_dictionary[page], PageRanks, corpus)
             page_rank = default_value + damping_factor*(weighted_value)
-            change = np.max(PageRanks[page]-page_rank, change)
+            print(f"Loop counter is {counter}")
+            print(f"Current Value of {page} is {PageRanks[page]}")
+            print(f"New value of {page} is {page_rank}")
+            new_change = PageRanks[page]-page_rank
+            print(f"Change is {new_change}")
+            change = np.max(new_change, change)
             PageRanks[page] = page_rank
+            counter += 1
     return PageRanks
 
 '''
     This function still isn't working.
     Some basic dictionary interaction that I'm not familiar with in Python.
 '''
-def find_inputs(corpus):
+def find_inputs(corpus): # {a:(c, b), b:(a), c(b)} -> {a:(b), b:(c,a), c:(a)}
     dictionary = {}
     for page in corpus.keys():
         if len(corpus[page]) == 0:
-            for page in corpus.keys():
-                if page in dictionary.keys():
-                    print("\n\n\nFound in dictionary:", page)
-                    dictionary[page] = dictionary[page].append(page)
-                else:
-                    dictionary[page] = [page]
+            for linked_page in corpus.keys():
+                input = dictionary.setdefault(linked_page, set())
+                input.add(page)
+                dictionary[linked_page] = input
         else:
             for linked_page in corpus[page]:
-                if linked_page in dictionary.keys():
-                    dictionary[linked_page] = dictionary[linked_page].append(page)
-                else:
-                    dictionary[linked_page] = [page]
+                input = dictionary.setdefault(linked_page, set())
+                input.add(page)
+                dictionary[linked_page] = input
     return dictionary
 
 def calculate_weighted(linking_pages, PageRanks, corpus):
