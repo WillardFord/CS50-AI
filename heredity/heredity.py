@@ -139,7 +139,62 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+    
+    # Create dictoinary of individuals with one, two, or zero copies of the gene
+    number_copies = {}
+    for person in one_gene:
+        number_copies[person] = 1
+    for person in two_genes:
+        number_copies[person] = 2
+    for person in set(people.keys())-set(number_copies.keys()):
+        number_copies[person] = 0
+
+    # Calculate individual probabilites
+    probabilities = []
+    for person in people.keys():
+        copies_wanted = number_copies[person]
+
+        mother = people[person].setdefault('mother', None)
+        father = people[person].setdefault('father', None)
+        
+        if mother and father:
+            if number_copies[mother] == 0:
+                mother_pass_probability = PROBS["mutation"]
+            elif number_copies[mother] == 1:
+                mother_pass_probability = .5
+            else:
+                mother_pass_probability = 1-PROBS["mutation"]
+            if number_copies[father] == 0:
+                father_pass_probability = PROBS["mutation"]
+            elif number_copies[father] == 1:
+                father_pass_probability = .5
+            else:
+                father_pass_probability = 1-PROBS["mutation"]
+        elif not mother and not father:
+            gene_probability = PROBS["gene"][copies_wanted]
+        elif copies_wanted == 0:
+            # Not inhereited from either parent
+            gene_probability = (1-mother_pass_probability)*(1-father_pass_probability)
+        elif copies_wanted == 1:
+            # Can be inherited from either parent
+            gene_probability = (1-mother_pass_probability)*(father_pass_probability) + \
+                (mother_pass_probability)*(1-father_pass_probability)
+        else:
+            # Must be inherited from both parents
+            gene_probability = (mother_pass_probability)*(father_pass_probability)
+
+        if person in have_trait:
+            trait_probability = PROBS["trait"][copies_wanted][True]
+        else:
+            trait_probability = PROBS["trait"][copies_wanted][False]
+
+        probabilities.append(trait_probability * gene_probability)
+
+    # Multiply for joint probabilites
+    j_probability = 1
+    for prob in probabilities:
+        j_probability *= prob
+    return j_probability
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
@@ -149,6 +204,9 @@ def update(probabilities, one_gene, two_genes, have_trait, p):
     Which value for each distribution is updated depends on whether
     the person is in `have_gene` and `have_trait`, respectively.
     """
+
+    
+
     raise NotImplementedError
 
 
@@ -157,6 +215,8 @@ def normalize(probabilities):
     Update `probabilities` such that each probability distribution
     is normalized (i.e., sums to 1, with relative proportions the same).
     """
+
+
     raise NotImplementedError
 
 
