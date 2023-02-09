@@ -202,10 +202,17 @@ class CrosswordCreator():
         that rules out the fewest values among the neighbors of `var`.
         """
 
-        # TODO: implement
+        # The complexity required to implement this heuristic sucks. 
+        # I'm convinced it would be faster to not do at the scale we are working at.
 
-        domain = self.domains[var]
-        return domain
+        word_dom_change = {word: 0 for word in self.domains[var]}
+        for word in self.domains[var]:
+            for neigh in self.crossword.neighbors(var):
+                for neigh_word in self.domains[neigh]:
+                    var_inter_index, neigh_inter_index = self.crossword.overlaps[var, neigh]
+                    if word[var_inter_index] != neigh_word[neigh_inter_index]:
+                        word_dom_change[word] += 1
+        return sorted([x for x in word_dom_change], key = lambda x: word_dom_change[x])
 
     def select_unassigned_variable(self, assignment):
         """
@@ -216,11 +223,12 @@ class CrosswordCreator():
         return values.
         """
 
-        # TODO: implement
-
+        output = []
         for variable in self.crossword.variables:
             if variable not in assignment.keys():
-                return variable
+                output.append((variable,len(self.domains[variable]),len(self.crossword.neighbors(variable))))
+        output = sorted(output, key=lambda pair:(pair[1], -pair[2]))
+        return output.pop()[0]
 
     def backtrack(self, assignment):
         """
