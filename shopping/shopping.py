@@ -62,17 +62,36 @@ def load_data(filename):
     is 1 if Revenue is true, and 0 otherwise.
     """
 
-    
+    df = pd.read_csv(filename)
 
-    raise NotImplementedError
+    # Fix Labels
+    labels_dict = {False:0,True:1}
+    df['Revenue'] = df['Revenue'].replace(labels_dict)
+    # Fix Month
+    month_dict = {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'June':6,
+        'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12}
+    df['Month'] = df['Month'].replace(month_dict)
+    # Fix Visitor Type
+    visitor_dict = {'Returning_Visitor':1, 'New_Visitor':0, 'Other':0}
+    df['VisitorType'] = df['VisitorType'].replace(visitor_dict)
+    # Fix Weekend
+    df['Weekend'] = df['Weekend'].replace(labels_dict)
+    df[['Revenue','Month', 'VisitorType','Weekend']] =df[['Revenue','Month', 'VisitorType','Weekend']].apply(pd.to_numeric)
 
+    labels = df['Revenue'].values.tolist()
+    df.drop(['Revenue'], inplace=True, axis=1)
+
+    evidence = df.values.tolist()
+    return (evidence, labels)
 
 def train_model(evidence, labels):
     """
     Given a list of evidence lists and a list of labels, return a
     fitted k-nearest neighbor model (k=1) trained on the data.
     """
-    raise NotImplementedError
+    model = KNeighborsClassifier(1)
+    model.fit(evidence, labels)
+    return model
 
 
 def evaluate(labels, predictions):
@@ -90,7 +109,15 @@ def evaluate(labels, predictions):
     representing the "true negative rate": the proportion of
     actual negative labels that were accurately identified.
     """
-    raise NotImplementedError
+    
+    true_pos = labels.count(1)
+    true_neg = len(labels) - true_pos
+    pred_pos = list(predictions).count(1)
+    pred_neg = len(predictions) - pred_pos
+
+    sensitivity = pred_pos/true_pos
+    specificity = pred_neg/true_neg
+    return (sensitivity, specificity)
 
 
 if __name__ == "__main__":
