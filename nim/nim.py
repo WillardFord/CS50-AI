@@ -154,18 +154,17 @@ class NimAI():
         """
         # Find best possible return value
         actions = Nim.available_actions(state)
-        pairs = [(tuple(state), a) for a in actions]
+
+        if epsilon + random.random() <= self.epsilon:
+            # Because sample returns a list containing the item
+            return random.sample(actions, 1)[0]
+
         max_value = -math.inf
-        best_pair = (0,0)
         for action in actions:
             if self.get_q_value(state, action) > max_value:
                 max_value = self.get_q_value(state, action)
-                best_pair = action
-        if epsilon:
-            rand = random.choices([True, False], weights=[self.epsilon, 1-self.epsilon], cum_weights=None, k=1)
-            if rand:
-                return random.sample(actions,1)[0]
-        return action
+                best_action = action
+        return best_action
 
 
 def train(n):
@@ -281,3 +280,16 @@ def play(ai, human_player=None):
             winner = "Human" if game.winner == human_player else "AI"
             print(f"Winner is {winner}")
             return
+
+"""
+# save the model to disk
+filename = 'finalized_model.sav'
+pickle.dump(model, open(filename, 'wb'))
+ 
+# some time later...
+ 
+# load the model from disk
+loaded_model = pickle.load(open(filename, 'rb'))
+result = loaded_model.score(X_test, Y_test)
+print(result)
+"""
