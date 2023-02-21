@@ -3,6 +3,8 @@ import numpy as np
 import os
 import sys
 import tensorflow as tf
+import pandas as pd
+import numpy as np
 
 from sklearn.model_selection import train_test_split
 
@@ -58,8 +60,19 @@ def load_data(data_dir):
     be a list of integer labels, representing the categories for each of the
     corresponding `images`.
     """
-    raise NotImplementedError
+    cwd = os.getcwd()
+    images = []
+    labels = []
 
+    for type in range(0, NUM_CATEGORIES):
+        type = str(type)
+        for image in os.listdir(os.path.join(cwd, data_dir, type)):
+            i_path = os.path.join(cwd,data_dir,type,image)
+            img = cv2.imread(f'{i_path}')
+            img_rs = cv2.resize(img, (IMG_WIDTH, IMG_HEIGHT))
+            labels.append(type)
+            images.append(img_rs)
+    return (images, labels)
 
 def get_model():
     """
@@ -67,8 +80,21 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    raise NotImplementedError
 
+    model = tf.keras.models.Sequential(layers=(
+        tf.keras.layers.Conv2D(32,(3,3),activation='relu',input_shape=((IMG_WIDTH, IMG_HEIGHT, 3))),
+        tf.keras.layers.MaxPooling2D((2,2)),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dropout(.5),
+        tf.keras.layers.Dense(NUM_CATEGORIES, activation='softmax'))
+    )
+    model.compile(
+        optimizer='adam',
+        loss='binary_crossentropy',
+        metrics=['accuracy']
+    )
+    return model
 
 if __name__ == "__main__":
     main()
